@@ -1,4 +1,5 @@
 # https://tutorialedge.net/python/concurrency/asyncio-event-loops-tutorial/
+# sudo apt install bridge-utils bluez python-dbus python-gobject
 import os, sys
 import asyncio
 import platform

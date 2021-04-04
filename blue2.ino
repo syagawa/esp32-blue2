@@ -19,9 +19,14 @@
 
 #include <WiFiMulti.h>
 
-#define SERVICE_UUID           "00001143-0000-1000-8000-00805f9b34fb" // UART service UUID
+#define SERVICE_UUID           "00001141-0000-1000-8000-00805f9b34fb" // UART service UUID
 #define CHARACTERISTIC_UUID_RX "00001142-0000-1000-8000-00805f9b34fb"
-#define CHARACTERISTIC_UUID_TX "00001141-0000-1000-8000-00805f9b34fb"
+#define CHARACTERISTIC_UUID_TX "00001143-0000-1000-8000-00805f9b34fb"
+
+// const char* uuidOfService = "00001101-0000-1000-8000-00805f9b34fb";
+// const char* uuidOfRxChar = "00001142-0000-1000-8000-00805f9b34fb";
+// const char* uuidOfTxChar = "00001143-0000-1000-8000-00805f9b34fb";
+
 
 // #define SERVICE_UUID           "6E400001-B5A3-F393-E0A9-E50E24DCCA9E" // UART service UUID
 // #define CHARACTERISTIC_UUID_RX "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
@@ -50,6 +55,7 @@ class MyServerCallbacks: public BLEServerCallbacks {
 class MyCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic *pCharacteristic) {
       std::string rxValue = pCharacteristic->getValue();
+      Serial.println("write in esp32");
 
       if (rxValue.length() > 0) {
         portENTER_CRITICAL_ISR(&storeDataMux);
@@ -58,6 +64,21 @@ class MyCallbacks: public BLECharacteristicCallbacks {
         portEXIT_CRITICAL_ISR(&storeDataMux);
       }
     }
+
+    void onRead(BLECharacteristic *pCharacteristic) {
+      Serial.println("read in esp32");
+      pCharacteristic->setValue("Hello from esp32! onRead");
+    }
+
+  // void onWrite(BLECharacteristic *pCharacteristic) {
+  //   Serial.println("write");
+  //   std::string value = pCharacteristic->getValue();
+  //   storedValue = value;
+  //   bleDataIsReceived = true;
+  //   Serial.println(value.c_str());
+  // }
+
+
 };
 
 
@@ -69,7 +90,7 @@ void setup()
   bleDataIsReceived = false;
 
   // Create the BLE Device
-  BLEDevice::init("UART Echo Back Sample");
+  BLEDevice::init("ESP32 Sample");
 
   // Create the BLE Server
   pServer = BLEDevice::createServer();
@@ -112,9 +133,13 @@ void loop()
         Serial.println("received string:");
         Serial.println(storedValue.c_str());
         pTxCharacteristic->setValue(storedValue);
-        pTxCharacteristic->notify();          
+        pTxCharacteristic->notify();
       }
       portEXIT_CRITICAL_ISR(&storeDataMux);
+
+      pTxCharacteristic->setValue("message from esp32 loop");
+      pTxCharacteristic->notify();
+
       delay(10); // bluetooth stack will go into congestion, if too many packets are sent
     }
 
