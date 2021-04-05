@@ -90,7 +90,7 @@ void setup()
   bleDataIsReceived = false;
 
   // Create the BLE Device
-  BLEDevice::init("ESP32 Sample");
+  BLEDevice::init("timerx");
 
   // Create the BLE Server
   pServer = BLEDevice::createServer();
@@ -127,7 +127,7 @@ void loop()
 {
     if (deviceConnected) {
       portENTER_CRITICAL_ISR(&storeDataMux);
-      Serial.println("connected");
+      // Serial.println("connected");
       if (bleDataIsReceived) {
         bleDataIsReceived = false;
         Serial.println("received string:");
@@ -136,10 +136,6 @@ void loop()
         pTxCharacteristic->notify();
       }
       portEXIT_CRITICAL_ISR(&storeDataMux);
-
-      pTxCharacteristic->setValue("message from esp32 loop");
-      pTxCharacteristic->notify();
-
       delay(10); // bluetooth stack will go into congestion, if too many packets are sent
     }
 

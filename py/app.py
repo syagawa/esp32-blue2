@@ -1,5 +1,6 @@
 # https://tutorialedge.net/python/concurrency/asyncio-event-loops-tutorial/
 # sudo apt install bridge-utils bluez python-dbus python-gobject
+# sudo service bluetooth restart
 import os, sys
 import asyncio
 import platform
@@ -142,6 +143,7 @@ class Connection:
     def notification_handler(self, sender: str, data: Any):
         self.rx_data.append(int.from_bytes(data, byteorder="big"))
         self.record_time_info()
+        print(f"Received From ESP 32 : {data}")
         if len(self.rx_data) >= self.dump_size:
             self.data_dump_handler(self.rx_data, self.rx_timestamps, self.rx_delays)
             self.clear_lists()
