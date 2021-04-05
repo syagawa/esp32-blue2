@@ -32,6 +32,20 @@
 // #define CHARACTERISTIC_UUID_RX "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
 // #define CHARACTERISTIC_UUID_TX "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 
+
+#define CAMERA_MODEL_M5STACK_PSRAM // Has PSRAM
+
+#include "Arduino.h"
+#include "freertos/FreeRTOS.h"
+#include "battery.h"
+#include "camera_pins.h"
+#include "led.h"
+#include "bmm8563.h"
+
+
+
+
+
 BLEServer *pServer = NULL;
 BLECharacteristic * pTxCharacteristic;
 bool deviceConnected = false;
@@ -81,6 +95,18 @@ class MyCallbacks: public BLECharacteristicCallbacks {
 
 };
 
+void led_breathe_test() {
+  for (int16_t i = 0; i < 1024; i++) {
+    led_brightness(i);
+    vTaskDelay(pdMS_TO_TICKS(1));
+  }
+
+  for (int16_t i = 1023; i >= 0; i--) {
+    led_brightness(i);
+    vTaskDelay(pdMS_TO_TICKS(1));
+  }
+}
+
 
 void setup()
 {
@@ -121,6 +147,10 @@ void setup()
   pServer->getAdvertising()->start();
   Serial.println("Waiting a client connection to notify...");
 
+  // LED
+  led_init(CAMERA_LED_GPIO);
+  led_breathe_test();
+
 }
 
 void loop()
@@ -129,6 +159,7 @@ void loop()
       portENTER_CRITICAL_ISR(&storeDataMux);
       // Serial.println("connected");
       if (bleDataIsReceived) {
+        led_breathe_test();
         bleDataIsReceived = false;
         Serial.println("received string:");
         Serial.println(storedValue.c_str());
