@@ -11,8 +11,7 @@ from aioconsole import ainput
 from bleak import BleakClient, discover
 
 
-root_path = os.environ["HOME"]
-output_file = f"{root_path}/Desktop/microphone_dump.csv"
+output_file = "./dump.csv"
 
 selected_device = []
 
