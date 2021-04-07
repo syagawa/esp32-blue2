@@ -43,6 +43,8 @@
 #include "bmm8563.h"
 
 #include "esp_camera.h"
+#include "base64.hpp"
+
 
 
 
@@ -175,14 +177,53 @@ void setup()
   config.pin_pwdn = PWDN_GPIO_NUM;
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
-  config.pixel_format = PIXFORMAT_JPEG;
+  config.pixel_format = PIXFORMAT_JPEG;//YUV422,GRAYSCALE,RGB565,JPEG
+  config.frame_size = FRAMESIZE_FHD;
+  config.jpeg_quality = 10;//0-63 lower number means higher quality
+  config.fb_count = 2;//if more than one, i2s runs in continuous mode. Use only with JPEG
 
+  // camera init
+  esp_err_t err = esp_camera_init(&config);
+  if (err != ESP_OK) {
+    Serial.printf("Camera init failed with error 0x%x", err);
+    return;
+  }
+
+  sensor_t * s = esp_camera_sensor_get();
+  //initial sensors are flipped vertically and colors are a bit saturated
+  s->set_vflip(s, 1);//flip it back
+  s->set_brightness(s, 1);//up the blightness just a bit
+  s->set_saturation(s, -2);//lower the saturation
+
+  //drop down frame size for higher initial frame rate
+  s->set_framesize(s, FRAMESIZE_FHD);
+
+  Serial.print("Camera Ready!");
 
 
 }
 
 void loop()
 {
+
+    camera_fb_t *fb = esp_camera_fb_get();
+    if ( fb ) {
+      Serial.printf("width: %d, height: %d, buf: 0x%x, len: %d\n", fb->width, fb->height, fb->buf, fb->len);
+      unsigned int base64_length = encode_base64_length(fb->len);
+      unsigned char *base64buff = new unsigned char[base64_length+1];
+      base64buff[base64_length] = '\0';
+      encode_base64(fb->buf, fb->len, base64buff);
+      // char *serverName = "http://192.168.0.16:1880/image";
+      // HTTPClient http;
+      // http.begin(serverName);
+      // http.addHeader("Content-Type", "text/plain");
+      // int httpResponseCode = http.POST(reinterpret_cast<char*>(base64buff));
+      // Serial.printf("%d", httpResponseCode);
+      Serial.printf("%s", base64buff);
+      delete [] base64buff;
+      esp_camera_fb_return(fb);
+    }
+
     if (deviceConnected) {
 
       // Serial.print("-1: ");
