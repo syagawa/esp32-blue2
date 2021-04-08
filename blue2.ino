@@ -43,7 +43,7 @@
 #include "bmm8563.h"
 
 #include "esp_camera.h"
-#include "base64.hpp"
+#include "src/base64.hpp"
 
 
 
@@ -208,7 +208,7 @@ void loop()
 
     camera_fb_t *fb = esp_camera_fb_get();
     if ( fb ) {
-      Serial.printf("width: %d, height: %d, buf: 0x%x, len: %d\n", fb->width, fb->height, fb->buf, fb->len);
+      // Serial.printf("width: %d, height: %d, buf: 0x%x, len: %d\n", fb->width, fb->height, fb->buf, fb->len);
       unsigned int base64_length = encode_base64_length(fb->len);
       unsigned char *base64buff = new unsigned char[base64_length+1];
       base64buff[base64_length] = '\0';
@@ -257,5 +257,5 @@ void loop()
         oldDeviceConnected = deviceConnected;
     }  
 
+  delay(5000);
 }
-
