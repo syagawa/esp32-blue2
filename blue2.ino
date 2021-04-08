@@ -196,7 +196,7 @@ void setup()
   s->set_saturation(s, -2);//lower the saturation
 
   //drop down frame size for higher initial frame rate
-  s->set_framesize(s, FRAMESIZE_FHD);
+  s->set_framesize(s, FRAMESIZE_QVGA);
 
   Serial.print("Camera Ready!");
 
@@ -207,6 +207,7 @@ void loop()
 {
 
     camera_fb_t *fb = esp_camera_fb_get();
+
     if ( fb ) {
       // Serial.printf("width: %d, height: %d, buf: 0x%x, len: %d\n", fb->width, fb->height, fb->buf, fb->len);
       unsigned int base64_length = encode_base64_length(fb->len);
@@ -226,9 +227,6 @@ void loop()
 
     if (deviceConnected) {
 
-      // Serial.print("-1: ");
-      // Serial.println(digitalRead(-1));
-
       portENTER_CRITICAL_ISR(&storeDataMux);
       // Serial.println("connected");
       if (bleDataIsReceived) {
@@ -242,6 +240,29 @@ void loop()
       portEXIT_CRITICAL_ISR(&storeDataMux);
       delay(10); // bluetooth stack will go into congestion, if too many packets are sent
     }
+
+    // if ( fb && deviceConnected) {
+    //   portENTER_CRITICAL_ISR(&storeDataMux);
+    //   if (bleDataIsReceived) {
+
+    //     unsigned int base64_length = encode_base64_length(fb->len);
+    //     unsigned char *base64buff = new unsigned char[base64_length+1];
+    //     base64buff[base64_length] = '\0';
+    //     encode_base64(fb->buf, fb->len, base64buff);
+
+    //     led_breathe_test();
+    //     bleDataIsReceived = false;
+    //     pTxCharacteristic->setValue(fb->buf);
+    //     pTxCharacteristic->notify();
+
+    //     delete [] base64buff;
+    //     esp_camera_fb_return(fb);
+    //   }
+    //   portEXIT_CRITICAL_ISR(&storeDataMux);
+    //   delay(10); // bluetooth stack will go into congestion, if too many packets are sent
+    // }
+
+
 
     // disconnecting
     if (!deviceConnected && oldDeviceConnected) {
