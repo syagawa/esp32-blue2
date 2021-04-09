@@ -208,38 +208,61 @@ void loop()
 
     camera_fb_t *fb = esp_camera_fb_get();
 
-    if ( fb ) {
-      // Serial.printf("width: %d, height: %d, buf: 0x%x, len: %d\n", fb->width, fb->height, fb->buf, fb->len);
-      unsigned int base64_length = encode_base64_length(fb->len);
-      unsigned char *base64buff = new unsigned char[base64_length+1];
-      base64buff[base64_length] = '\0';
-      encode_base64(fb->buf, fb->len, base64buff);
-      // char *serverName = "http://192.168.0.16:1880/image";
-      // HTTPClient http;
-      // http.begin(serverName);
-      // http.addHeader("Content-Type", "text/plain");
-      // int httpResponseCode = http.POST(reinterpret_cast<char*>(base64buff));
-      // Serial.printf("%d", httpResponseCode);
-      Serial.printf("%s", base64buff);
-      delete [] base64buff;
-      esp_camera_fb_return(fb);
-    }
+    // if ( fb ) {
+    //   // Serial.printf("width: %d, height: %d, buf: 0x%x, len: %d\n", fb->width, fb->height, fb->buf, fb->len);
+    //   unsigned int base64_length = encode_base64_length(fb->len);
+    //   unsigned char *base64buff = new unsigned char[base64_length+1];
+    //   base64buff[base64_length] = '\0';
+    //   encode_base64(fb->buf, fb->len, base64buff);
+    //   // char *serverName = "http://192.168.0.16:1880/image";
+    //   // HTTPClient http;
+    //   // http.begin(serverName);
+    //   // http.addHeader("Content-Type", "text/plain");
+    //   // int httpResponseCode = http.POST(reinterpret_cast<char*>(base64buff));
+    //   // Serial.printf("%d", httpResponseCode);
+    //   Serial.printf("%s", base64buff);
+    //   delete [] base64buff;
+    //   esp_camera_fb_return(fb);
+    // }
 
-    if (deviceConnected) {
+    // if (deviceConnected) {
 
+    //   portENTER_CRITICAL_ISR(&storeDataMux);
+    //   // Serial.println("connected");
+    //   if (bleDataIsReceived) {
+    //     led_breathe_test();
+    //     bleDataIsReceived = false;
+    //     Serial.println("received string:");
+    //     Serial.println(storedValue.c_str());
+    //     pTxCharacteristic->setValue(storedValue);
+    //     pTxCharacteristic->notify();
+    //   }
+    //   portEXIT_CRITICAL_ISR(&storeDataMux);
+    //   delay(10); // bluetooth stack will go into congestion, if too many packets are sent
+    // }
+
+
+    if ( fb && deviceConnected) {
       portENTER_CRITICAL_ISR(&storeDataMux);
-      // Serial.println("connected");
       if (bleDataIsReceived) {
+
+        uint8_t * buf_u8t = NULL;
+        buf_u8t = fb->buf;
+
         led_breathe_test();
         bleDataIsReceived = false;
-        Serial.println("received string:");
-        Serial.println(storedValue.c_str());
-        pTxCharacteristic->setValue(storedValue);
+        pTxCharacteristic->setValue(buf_u8t, (unsigned int) sizeof buf_u8t);
         pTxCharacteristic->notify();
+
+        // delete [] base64buff;
+        esp_camera_fb_return(fb);
       }
       portEXIT_CRITICAL_ISR(&storeDataMux);
       delay(10); // bluetooth stack will go into congestion, if too many packets are sent
     }
+
+
+
 
     // if ( fb && deviceConnected) {
     //   portENTER_CRITICAL_ISR(&storeDataMux);
