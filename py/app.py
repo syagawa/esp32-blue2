@@ -142,6 +142,11 @@ class Connection:
     def notification_handler(self, sender: str, data: Any):
         self.rx_data.append(int.from_bytes(data, byteorder="big"))
         self.record_time_info()
+
+        path_w = './a.jpg'
+        with open(path_w, mode='wb') as f:
+            f.write(data)
+
         print(f"Received From ESP 32 : {data}")
         if len(self.rx_data) >= self.dump_size:
             self.data_dump_handler(self.rx_data, self.rx_timestamps, self.rx_delays)

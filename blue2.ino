@@ -177,6 +177,7 @@ void setup()
   config.pin_pwdn = PWDN_GPIO_NUM;
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
+  // config.xclk_freq_hz = 5000000;
   config.pixel_format = PIXFORMAT_JPEG;//YUV422,GRAYSCALE,RGB565,JPEG
   config.frame_size = FRAMESIZE_FHD;
   config.jpeg_quality = 10;//0-63 lower number means higher quality
@@ -206,7 +207,35 @@ void setup()
 void loop()
 {
 
-    camera_fb_t *fb = esp_camera_fb_get();
+    Serial.println("aaaa");
+    camera_fb_t *fb = NULL;
+    fb = esp_camera_fb_get();
+    Serial.println("bbbb");
+    if (!fb) {
+      Serial.println("Camera capture failed");
+    }
+    if ( fb ) {
+      Serial.println("Camera capture success!");
+      if(deviceConnected){
+        portENTER_CRITICAL_ISR(&storeDataMux);
+        if (bleDataIsReceived) {
+
+          uint8_t * buf_u8t = NULL;
+          buf_u8t = fb->buf;
+
+          led_breathe_test();
+          bleDataIsReceived = false;
+          pTxCharacteristic->setValue(buf_u8t, (unsigned int) sizeof buf_u8t);
+          pTxCharacteristic->notify();
+
+          // delete [] base64buff;
+        }
+        portEXIT_CRITICAL_ISR(&storeDataMux);
+      }
+      esp_camera_fb_return(fb);
+      delay(10); // bluetooth stack will go into congestion, if too many packets are sent
+    }
+
 
     // if ( fb ) {
     //   // Serial.printf("width: %d, height: %d, buf: 0x%x, len: %d\n", fb->width, fb->height, fb->buf, fb->len);
@@ -242,24 +271,7 @@ void loop()
     // }
 
 
-    if ( fb && deviceConnected) {
-      portENTER_CRITICAL_ISR(&storeDataMux);
-      if (bleDataIsReceived) {
-
-        uint8_t * buf_u8t = NULL;
-        buf_u8t = fb->buf;
-
-        led_breathe_test();
-        bleDataIsReceived = false;
-        pTxCharacteristic->setValue(buf_u8t, (unsigned int) sizeof buf_u8t);
-        pTxCharacteristic->notify();
-
-        // delete [] base64buff;
-        esp_camera_fb_return(fb);
-      }
-      portEXIT_CRITICAL_ISR(&storeDataMux);
-      delay(10); // bluetooth stack will go into congestion, if too many packets are sent
-    }
+    
 
 
 
@@ -301,5 +313,5 @@ void loop()
         oldDeviceConnected = deviceConnected;
     }  
 
-  delay(5000);
+  // delay(5000);
 }
