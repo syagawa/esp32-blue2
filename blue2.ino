@@ -48,9 +48,6 @@
 
 
 
-
-
-
 BLEServer *pServer = NULL;
 BLECharacteristic * pTxCharacteristic;
 bool deviceConnected = false;
@@ -216,22 +213,48 @@ void loop()
     }
     if ( fb ) {
       Serial.println("Camera capture success!");
+      // Serial.printf("width: %d, height: %d, buf: 0x%x, len: %d\n", fb->width, fb->height, fb->buf, fb->len);
+      uint8_t *buf = NULL;
+      buf = fb->buf;
+      Serial.print("width:");
+      Serial.println(fb->width);
+      Serial.print("height:");
+      Serial.println(fb->height);
+      // Serial.print("buf:");
+      // Serial.println(buf);
+      Serial.print("len:");
+      Serial.println(fb->len);
+
+      unsigned int base64_length = encode_base64_length(fb->len);
+      unsigned char *base64buff = new unsigned char[base64_length+1];
+      base64buff[base64_length] = '\0';
+      encode_base64(fb->buf, fb->len, base64buff);
+      Serial.printf("%s", base64buff);
+      // std::string base64_buff_str = reinterpret_cast<std::string *> (base64buff);
+      String base64_buff_str = reinterpret_cast<const char*>(base64buff);
+      Serial.println("aaa");
+      Serial.print(base64_buff_str);
+
+
+
       if(deviceConnected){
         portENTER_CRITICAL_ISR(&storeDataMux);
         if (bleDataIsReceived) {
 
-          uint8_t * buf_u8t = NULL;
-          buf_u8t = fb->buf;
-
           led_breathe_test();
           bleDataIsReceived = false;
-          pTxCharacteristic->setValue(buf_u8t, (unsigned int) sizeof buf_u8t);
+          pTxCharacteristic->setValue(base64_buff_str.c_str());
+          // pTxCharacteristic->setValue(buf, fb->len);
+          // pTxCharacteristic->setValue(buf, fb->len);
+          // pTxCharacteristic->setValue(buf, (unsigned int) sizeof buf);
           pTxCharacteristic->notify();
 
           // delete [] base64buff;
         }
         portEXIT_CRITICAL_ISR(&storeDataMux);
       }
+      delete [] base64buff;
+
       esp_camera_fb_return(fb);
       delay(10); // bluetooth stack will go into congestion, if too many packets are sent
     }
