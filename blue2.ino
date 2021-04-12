@@ -55,6 +55,7 @@ bool oldDeviceConnected = false;
 
 boolean bleDataIsReceived;
 std::string storedValue;
+std::string imgData;
 portMUX_TYPE storeDataMux = portMUX_INITIALIZER_UNLOCKED;
 
 class MyServerCallbacks: public BLEServerCallbacks {
@@ -232,10 +233,10 @@ void loop()
       Serial.printf("%s", base64buff);
       // std::string base64_buff_str = reinterpret_cast<std::string *> (base64buff);
       String base64_buff_str = reinterpret_cast<const char*>(base64buff);
+      std::string base64_buff_str2 = reinterpret_cast<const char*>(base64buff);
+      imgData = reinterpret_cast<const char*>(base64buff);
       Serial.println("aaa");
-      Serial.print(base64_buff_str);
-
-
+      Serial.print(base64_buff_str2.c_str());
 
       if(deviceConnected){
         portENTER_CRITICAL_ISR(&storeDataMux);
@@ -243,7 +244,7 @@ void loop()
 
           led_breathe_test();
           bleDataIsReceived = false;
-          pTxCharacteristic->setValue(base64_buff_str.c_str());
+          pTxCharacteristic->setValue(imgData);
           // pTxCharacteristic->setValue(buf, fb->len);
           // pTxCharacteristic->setValue(buf, fb->len);
           // pTxCharacteristic->setValue(buf, (unsigned int) sizeof buf);

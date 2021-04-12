@@ -7,6 +7,8 @@ import platform
 from datetime import datetime
 from typing import Callable, Any
 
+import base64
+
 from aioconsole import ainput
 from bleak import BleakClient, discover
 
@@ -144,8 +146,10 @@ class Connection:
         self.record_time_info()
 
         path_w = './a.jpg'
+        # imgdata = base64.b64decode(data)
         with open(path_w, mode='wb') as f:
             f.write(data)
+            # f.write(imgdata)
 
         print(f"Received From ESP 32 : {data}")
         if len(self.rx_data) >= self.dump_size:
