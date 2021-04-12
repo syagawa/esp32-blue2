@@ -241,10 +241,11 @@ void loop()
       if(deviceConnected){
         portENTER_CRITICAL_ISR(&storeDataMux);
         if (bleDataIsReceived) {
-
+          std::string testdata = "01234567890123456789-abc";
           led_breathe_test();
           bleDataIsReceived = false;
-          pTxCharacteristic->setValue(imgData);
+          pTxCharacteristic->setValue(storedValue);
+          // pTxCharacteristic->setValue(testdata);
           // pTxCharacteristic->setValue(buf, fb->len);
           // pTxCharacteristic->setValue(buf, fb->len);
           // pTxCharacteristic->setValue(buf, (unsigned int) sizeof buf);
